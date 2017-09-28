@@ -1,0 +1,12 @@
+canvas {
+  max-width: 100%;
+  width: 100%;
+}
+
+video {
+  margin: 0 0 20px 0;
+  width: 100%;
+  filter: hue-rotate(180deg) saturate(200%);
+  -moz-filter: hue-rotate(180deg) saturate(200%);
+  -webkit-filter: hue-rotate(180deg) saturate(200%);
+}
