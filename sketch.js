@@ -111,7 +111,7 @@ class Boid {
     this.maxforce = 0.05;
     this.following = false;
     this.followee = null;
-    this.followeeDist = 0;
+    this.initialDistToFollowee = 0;
     this.distDiff = 0;
     this.visualizeFollow = false;
     this.wrapBoundary = false;
@@ -220,7 +220,7 @@ class Boid {
 
   follow () {
     const currentDist = p5.Vector.dist(this.followee.position, this.position);
-    this.distDiff = currentDist - this.followeeDist;
+    this.distDiff = currentDist - this.initialDistToFollowee;
     let target = p5.Vector.sub(this.followee.position, this.position);
     let fol = this.seek(this.followee.position);
     fol.mult(this.distDiff);
@@ -310,17 +310,17 @@ class Boid {
     // pick a random nearby boid or any random boid if no one is near
     this.followee = random(candidates);
     if (this.followee == null) { this.followee = random(boids); }
-    this.followeeDist = p5.Vector.dist(this.position, this.followee.position);
+    this.initialDistToFollowee = p5.Vector.dist(this.position, this.followee.position);
 
-    // console.log('I follow ', this.followee, 'at distance ', this.followeeDist);
+    // console.log('I follow ', this.followee, 'at distance ', this.initialDistToFollowee);
     this.following = true;
-    return this.followeeDist;
+    return this.initialDistToFollowee;
   }
 
   unfollow () {
     this.following = false;
     this.followee = null;
-    this.followeeDist = 0;
+    this.initialDistToFollowee = 0;
   }
 
   update () {
