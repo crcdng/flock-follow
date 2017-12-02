@@ -11,7 +11,7 @@ function setup () {
   createCanvas(canvasWidth, canvasHeight).parent('canvas-holder');
 
   checkboxFollow = createCheckbox('Follow', false).parent('instrument-holder');
-  checkboxFollow.changed(onCheckBoxFollowChanged);
+  checkboxFollow.changed(onCheckboxFollowChanged);
   checkboxVisualizeFollow = createCheckbox('Visualize Follow', false).parent('instrument-holder');
   checkboxVisualizeFollow.changed(onCheckboxVisualizeFollowChanged);
 
@@ -32,17 +32,20 @@ function setup () {
 
 function draw () {
   background(51);
-  flock.run({ separation: sliderSeparation.value(),
-    alignment: sliderAlignment.value(),
-    cohesion: sliderCohesion.value()
-  });
+  flock.run(
+    {
+      separation: sliderSeparation.value(),
+      alignment: sliderAlignment.value(),
+      cohesion: sliderCohesion.value()
+    }
+  );
 }
 
 function onCheckboxBoundaryChanged () {
   flock.wrapBoundary(this.checked());
 }
 
-function onCheckBoxFollowChanged () {
+function onCheckboxFollowChanged () {
   if (this.checked()) {
     flock.startFollow();
   } else {
@@ -70,7 +73,7 @@ class Flock {
       if (boid.following) { sumDistDiff = sumDistDiff + Math.abs(boid.distDiff); }
       boid.run(this.boids, parameters);
     }
-    console.log(sumDistDiff);
+    // console.log(sumDistDiff);
   }
 
   startFollow () {

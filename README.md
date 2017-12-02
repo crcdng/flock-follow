@@ -1,6 +1,6 @@
-This is an extension of the p5.js flocking example by Daniel Shiffman.
+This is a rewrite and extension of the p5.js flocking example by Daniel Shiffman.
 
-Run a webserver like [live-server](https://github.com/tapio/live-server) in the main directory.
+To start, run a webserver like [live-server](https://github.com/tapio/live-server) in the main directory.
 
 # DONE
 
@@ -21,7 +21,7 @@ Run a webserver like [live-server](https://github.com/tapio/live-server) in the 
 
 [p5.js](https://p5js.org)
 
-https://p5js.org/examples/simulate-flocking.html 
+https://p5js.org/examples/simulate-flocking.html
 
 http://natureofcode.com/book/chapter-6-autonomous-agents/
 
