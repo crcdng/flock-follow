@@ -199,7 +199,7 @@ class Boid {
     }
   }
 
-  // We accumulate a new acceleration each time based on three rules
+  // accumulate a new acceleration each time based on three rules
   flock (boids, params) {
     const sep = this.separate(boids);   // Separation
     const ali = this.align(boids);      // Alignment
@@ -217,10 +217,9 @@ class Boid {
   follow () {
     const currentDist = p5.Vector.dist(this.followee.position, this.position);
     this.distDiff = currentDist - this.initialDistToFollowee;
-    let target = p5.Vector.sub(this.followee.position, this.position);
-    let fol = this.seek(this.followee.position);
-    fol.mult(this.distDiff);
-    this.applyForce(fol);
+    let followSteer = this.seek(this.followee.position);
+    followSteer.mult(this.distDiff);
+    this.applyForce(followSteer);
   }
 
   render () {
@@ -294,7 +293,7 @@ class Boid {
     return steer;
   }
 
-  // pick a random nearby boid or any random boid if no one is near
+  // pick a random nearby boid to follow (or any boid if no one is near)
   startFollow (boids) {
     const neighbordist = 50;
     const candidates = [];
