@@ -3,31 +3,27 @@
 let checkboxBoundary, checkboxFollow, checkboxVisualizeFollow, flock, sliderAlignment, sliderCohesion, sliderSeparation;
 
 function setup () {
-  let canvasWidth = 640;
-  let canvasHeight = 480;
+  createCanvas(640, 480).parent('canvas-holder');
 
   flock = new Flock();
-
-  createCanvas(canvasWidth, canvasHeight).parent('canvas-holder');
+  for (let i = 0; i < 100; i++) {
+    flock.addBoid(new Boid(random(0, width), random(0, height)));
+  }
 
   checkboxFollow = createCheckbox('Follow', false).parent('instrument-holder');
   checkboxFollow.changed(onCheckboxFollowChanged);
   checkboxVisualizeFollow = createCheckbox('Visualize Follow', false).parent('instrument-holder');
   checkboxVisualizeFollow.changed(onCheckboxVisualizeFollowChanged);
-
-  sliderSeparation = createSlider(0, 5.0, flock.parameters.separation, 0).parent('instrument-holder');
+  createP('').parent('instrument-holder'); // some distance
   createSpan('separation').parent('instrument-holder');
-  sliderAlignment = createSlider(0, 1.0, flock.parameters.alignment, 0).parent('instrument-holder');
+  sliderSeparation = createSlider(0, 5.0, flock.parameters.separation, 0).parent('instrument-holder');
   createSpan('alignment').parent('instrument-holder');
-  sliderCohesion = createSlider(0, 1.0, flock.parameters.cohesion, 0).parent('instrument-holder');
+  sliderAlignment = createSlider(0, 1.0, flock.parameters.alignment, 0).parent('instrument-holder');
   createSpan('cohesion').parent('instrument-holder');
+  sliderCohesion = createSlider(0, 1.0, flock.parameters.cohesion, 0).parent('instrument-holder');
 
   checkboxBoundary = createCheckbox('Wrap Boundary', false).parent('instrument-holder');
   checkboxBoundary.changed(onCheckboxBoundaryChanged);
-
-  for (let i = 0; i < 100; i++) {
-    flock.addBoid(new Boid(random(0, width), random(0, height)));
-  }
 }
 
 function draw () {
@@ -49,7 +45,7 @@ function onCheckboxFollowChanged () {
   if (this.checked()) {
     flock.startFollow();
   } else {
-    flock.unfollow();
+    flock.stopFollow();
   }
 }
 
@@ -63,8 +59,8 @@ class Flock {
     this.parameters = { separation: 2.5, alignment: 0.2, cohesion: 0.2 };
   }
 
-  addBoid (b) {
-    this.boids.push(b);
+  addBoid (boid) {
+    this.boids.push(boid);
   }
 
   run (parameters) {
@@ -82,9 +78,9 @@ class Flock {
     }
   }
 
-  unfollow () {
+  stopFollow () {
     for (const boid of this.boids) {
-      boid.unfollow();
+      boid.stopFollow();
     }
   }
 
@@ -250,7 +246,7 @@ class Boid {
 
   run (boids, params) {
     this.flock(boids, params);
-    if (this.following) { this.follow(); }
+    if (this.following === true) { this.follow(); }
     this.update();
     this.borders(this.wrapBoundary);
     this.render();
@@ -298,6 +294,7 @@ class Boid {
     return steer;
   }
 
+  // pick a random nearby boid or any random boid if no one is near
   startFollow (boids) {
     const neighbordist = 50;
     const candidates = [];
@@ -307,7 +304,6 @@ class Boid {
         candidates.push(boid);
       }
     }
-    // pick a random nearby boid or any random boid if no one is near
     this.followee = random(candidates);
     if (this.followee == null) { this.followee = random(boids); }
     this.initialDistToFollowee = p5.Vector.dist(this.position, this.followee.position);
@@ -317,7 +313,7 @@ class Boid {
     return this.initialDistToFollowee;
   }
 
-  unfollow () {
+  stopFollow () {
     this.following = false;
     this.followee = null;
     this.initialDistToFollowee = 0;

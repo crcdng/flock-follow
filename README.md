@@ -23,7 +23,7 @@ To start, run a webserver like [live-server](https://github.com/tapio/live-serve
 
 https://p5js.org/examples/simulate-flocking.html
 
-http://natureofcode.com/book/chapter-6-autonomous-agents/
+http://natureofcode.com/book/chapter-6-autonomous-agents/w
 
 Reynolds, Craig W. “Flocks, Herds and Schools: A Distributed Behavioral Model.” ACM Siggraph Computer Graphics 21, no. 4 (1987): 25–34.
 
