@@ -1,23 +1,53 @@
-This is a rewrite and extension of the p5.js flocking example by Daniel Shiffman.
 
-To start, run a webserver like [live-server](https://github.com/tapio/live-server) in the main directory.
+# Flock-Follow Experiment
 
-# DONE
+This is an experiment I learned in a workshop some time ago (I don't quite remember the exact occasion):
+
+Ask a group of people to walk around in a restricted space, so that flocking behaviour can emerge. Let them keep moving while trying not to bump into each other.
+
+Observe the behaviour for a while.
+
+Then introduce the "follow-rule". From a certain moment, signalled by a clap, each person:
+
+1. secretly selects another random person, and
+2. tries to keep a constant distance to that person.
+
+Observe the behaviour again. What has changed?
+
+I have done the experiment a number of times with groups of students. Afterwards I have shown this simulation, which attempts to model the phenomenon.
+
+This code grew from a rewrite of the p5.js flocking example by Daniel Shiffman from "The Nature of Code" (http://natureofcode.com).
+
+To start, run a webserver, e.g. [live-server](https://github.com/tapio/live-server) in the main directory.
+
+## DONE
 
 - ES6
 - implement parameter UI with [Materialize](http://materializecss.com/)
-- implement "follow" switch
+- implement "follow" logic
+- lint the code with [semistandard](https://github.com/Flet/semistandard)
 
-# TODO
+## IDEAS
 
-- implement "highlight one"
-- implement trace
+- implement run/pause
+- implement "highlight one" (klick on one boid while paused to highlight it)
+- implement variable number of boids
+- implement a small random error in the following distance  
+- implement optional tracing and save trace data
+- add an option to show a video of the experiment with humans and the simulation side-by-side
 - implement more behaviours from Reynolds' paper
-- implement sonification
+- expose neigborhood parameters
+- show parameter values on sliders
+
 - modularize the code, make p5.js work with ES6 modules
+- optimize (avoid vector creation in the draw loop)
+- optimize (reduce multiple runs through the boids array in flocking behaviors into one)
 
+- add sonification
 
-# References
+- extend the human experiment with switching followees, alternating between following and non-following mode, varying speed, different group and room sizes.
+
+## References
 
 [p5.js](https://p5js.org)
 

@@ -1,4 +1,5 @@
-// Based on p5.js example code from The Nature of Code, Daniel Shiffman, http://natureofcode.com
+// flock-follow by crcdng. see Readme.md
+/* global background, beginShape, CLOSE, createCanvas, createCheckbox, createP, createSlider, createSpan, createVector, draw, endShape, fill, height, line, p5, pop, push, radians, random, rotate, setup, stroke, translate, vertex, width */
 
 let checkboxBoundary, checkboxFollow, checkboxVisualizeFollow, flock, sliderAlignment, sliderCohesion, sliderSeparation;
 
@@ -182,7 +183,7 @@ class Boid {
   // attempt to stay close to nearby flockmates
   cohesion (boids) {
     const neighbordist = 50;
-    const sum = createVector(0, 0);   // Start with empty vector to accumulate all locations
+    const sum = createVector(0, 0); // Start with empty vector to accumulate all locations
     let count = 0;
     for (const boid of boids) {
       const dist = p5.Vector.dist(this.position, boid.position);
@@ -193,7 +194,7 @@ class Boid {
     }
     if (count > 0) {
       sum.div(count);
-      return this.seek(sum);  // Steer towards the location
+      return this.seek(sum); // Steer towards the location
     } else {
       return createVector(0, 0);
     }
@@ -201,9 +202,9 @@ class Boid {
 
   // accumulate a new acceleration each time based on three rules
   flock (boids, params) {
-    const sep = this.separate(boids);   // Separation
-    const ali = this.align(boids);      // Alignment
-    const coh = this.cohesion(boids);   // Cohesion
+    const sep = this.separate(boids); // Separation
+    const ali = this.align(boids); // Alignment
+    const coh = this.cohesion(boids); // Cohesion
     // weight these forces
     sep.mult(params.separation);
     ali.mult(params.alignment);
@@ -257,7 +258,7 @@ class Boid {
     desired.mult(this.maxspeed);
     // steering = desired minus current velocity
     let steer = p5.Vector.sub(desired, this.velocity);
-    steer.limit(this.maxforce);  // Limit to maximum steering force
+    steer.limit(this.maxforce); // Limit to maximum steering force
     return steer;
   }
 
@@ -274,7 +275,7 @@ class Boid {
         diff.normalize();
         diff.div(dist); // Weight by distance TODO try inverse square
         steer.add(diff);
-        count++;            // Keep track of how many
+        count++; // Keep track of how many
       }
     }
     // Average -- divide by how many
