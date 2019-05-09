@@ -1,45 +1,80 @@
 // flock-follow by crcdng. see Readme.md
-/* global background, beginShape, CLOSE, createCanvas, createCheckbox, createP, createSlider, createSpan, createVector, draw, endShape, fill, height, line, p5, pop, push, radians, random, rotate, setup, stroke, translate, vertex, width */
+/* global background, beginShape, circle, CLOSE, createButton, createCanvas, createCheckbox, createP, createSlider, createSpan, createVector, draw, endShape, fill, height, line, loadJSON, noFill, p5, pop, push, radians, random, rotate, saveJSON, setup, stroke, translate, vertex, width */
 
-let checkboxBoundary, checkboxFollow, checkboxVisualizeFollow, flock, sliderAlignment, sliderCohesion, sliderSeparation;
+let defaults, flock, parameters, sliderAlignment, sliderAlignmentDistance, sliderCohesion,
+  sliderCohesionDistance, sliderSeparation, sliderSeparationDistance;
 
 function setup () {
   createCanvas(640, 480).parent('canvas-holder');
-
-  flock = new Flock();
+  defaults = {
+    separation: 2.5,
+    separationDistance: 30,
+    alignment: 0.2,
+    alignmentDistance: 50,
+    cohesion: 0.2,
+    cohesionDistance: 50
+  };
+  parameters = Object.assign({}, defaults);
+  flock = new Flock(parameters);
   for (let i = 0; i < 100; i++) {
     flock.addBoid(new Boid(random(0, width), random(0, height)));
   }
 
-  checkboxFollow = createCheckbox('Follow', false).parent('instrument-holder');
-  checkboxFollow.changed(onCheckboxFollowChanged);
-  checkboxVisualizeFollow = createCheckbox('Visualize Follow', false).parent('instrument-holder');
-  checkboxVisualizeFollow.changed(onCheckboxVisualizeFollowChanged);
+  createP('').parent('instrument-holder'); // some distance
+  const btnReset = createButton('Reset Parameters').class('btn').parent('instrument-holder');
+  btnReset.mousePressed(resetParameters);
+  createP('').parent('instrument-holder'); // some distance
+  const btnLoad = createButton('Load Parameters').class('btn').parent('instrument-holder');
+  btnLoad.mousePressed(loadParameters);
+  createP('').parent('instrument-holder'); // some distance
+  const btnSave = createButton('Save Parameters').class('btn').parent('instrument-holder');
+  btnSave.mousePressed(saveParameters);
   createP('').parent('instrument-holder'); // some distance
   createSpan('separation').parent('instrument-holder');
-  sliderSeparation = createSlider(0, 5.0, flock.parameters.separation, 0).parent('instrument-holder');
+  sliderSeparation = createSlider(0, 5.0, parameters.separation, 0).parent('instrument-holder');
   createSpan('alignment').parent('instrument-holder');
-  sliderAlignment = createSlider(0, 1.0, flock.parameters.alignment, 0).parent('instrument-holder');
+  sliderAlignment = createSlider(0, 1.0, parameters.alignment, 0).parent('instrument-holder');
   createSpan('cohesion').parent('instrument-holder');
-  sliderCohesion = createSlider(0, 1.0, flock.parameters.cohesion, 0).parent('instrument-holder');
-
-  checkboxBoundary = createCheckbox('Wrap Boundary', false).parent('instrument-holder');
+  sliderCohesion = createSlider(0, 1.0, parameters.cohesion, 0).parent('instrument-holder');
+  createP('').parent('instrument-holder'); // some distance
+  const checkboxFollow = createCheckbox('Follow', false).parent('instrument-holder');
+  checkboxFollow.changed(onCheckboxFollowChanged);
+  const checkboxVisualizeFollow = createCheckbox('Visualize Follow', false).parent('instrument-holder');
+  checkboxVisualizeFollow.changed(onCheckboxVisualizeFollowChanged);
+  const checkboxBoundary = createCheckbox('Wrap Boundary', false).parent('instrument-holder');
   checkboxBoundary.changed(onCheckboxBoundaryChanged);
+  const checkboxRadii = createCheckbox('Show Radii', false).parent('instrument-holder');
+  checkboxRadii.changed(onCheckboxRadiiChanged);
+  createP('').parent('instrument-holder'); // some distance
+  createSpan('separation radius').parent('instrument-holder');
+  sliderSeparationDistance = createSlider(20, 200, parameters.separationDistance, 0).parent('instrument-holder');
+  createSpan('alignment radius').parent('instrument-holder');
+  sliderAlignmentDistance = createSlider(20, 200, parameters.alignmentDistance, 0).parent('instrument-holder');
+  createSpan('cohesion radius').parent('instrument-holder');
+  sliderCohesionDistance = createSlider(20, 200, parameters.cohesionDistance, 0).parent('instrument-holder');
 }
 
 function draw () {
-  background(51);
-  flock.run(
-    {
-      separation: sliderSeparation.value(),
-      alignment: sliderAlignment.value(),
-      cohesion: sliderCohesion.value()
-    }
-  );
+  background(51, 77);
+  parameters.separation = sliderSeparation.value();
+  parameters.separationDistance = sliderSeparationDistance.value();
+  parameters.alignment = sliderAlignment.value();
+  parameters.alignmentDistance = sliderAlignmentDistance.value();
+  parameters.cohesion = sliderCohesion.value();
+  parameters.cohesionDistance = sliderCohesionDistance.value();
+  flock.run(parameters);
+}
+
+function loadParameters () {
+  parameters = loadJSON('flockfollow_params.json', updateUI, (e) => { print("flockfollow parameter file not found!"); });
 }
 
 function onCheckboxBoundaryChanged () {
   flock.wrapBoundary(this.checked());
+}
+
+function onCheckboxRadiiChanged () {
+  flock.showRadii(this.checked());
 }
 
 function onCheckboxFollowChanged () {
@@ -54,10 +89,28 @@ function onCheckboxVisualizeFollowChanged () {
   flock.visualizeFollow(this.checked());
 }
 
+function resetParameters () {
+  parameters = Object.assign({}, defaults);
+  updateUI();
+}
+
+function saveParameters () {
+  saveJSON(parameters, 'flockfollow_params.json');
+}
+
+function updateUI () {
+  sliderSeparation.value(parameters.separation);
+  sliderSeparationDistance.value(parameters.separationDistance);
+  sliderAlignment.value(parameters.alignment);
+  sliderAlignmentDistance.value(parameters.alignmentDistance);
+  sliderCohesion.value(parameters.cohesion);
+  sliderCohesionDistance.value(parameters.cohesionDistance);
+}
+
 class Flock {
   constructor () {
     this.boids = [];
-    this.parameters = { separation: 2.5, alignment: 0.2, cohesion: 0.2 };
+    this.parameters = parameters;
   }
 
   addBoid (boid) {
@@ -71,6 +124,12 @@ class Flock {
       boid.run(this.boids, parameters);
     }
     // console.log(sumDistDiff);
+  }
+
+  showRadii (on) {
+    for (const boid of this.boids) {
+      boid.showRadii = on;
+    }
   }
 
   startFollow () {
@@ -112,16 +171,16 @@ class Boid {
     this.distDiff = 0;
     this.visualizeFollow = false;
     this.wrapBoundary = false;
+    this.showRadii = false;
   }
 
   // attempt to match velocity with nearby flockmates
-  align (boids) {
-    const neighbordist = 50;
+  align (boids, params) {
     const sum = createVector(0, 0);
     let count = 0;
     for (const boid of boids) {
       const dist = p5.Vector.dist(this.position, boid.position);
-      if ((dist > 0) && (dist < neighbordist)) {
+      if ((dist > 0) && (dist < params.alignmentDistance)) {
         sum.add(boid.velocity);
         count++;
       }
@@ -181,13 +240,12 @@ class Boid {
   }
 
   // attempt to stay close to nearby flockmates
-  cohesion (boids) {
-    const neighbordist = 50;
+  cohesion (boids, params) {
     const sum = createVector(0, 0); // Start with empty vector to accumulate all locations
     let count = 0;
     for (const boid of boids) {
       const dist = p5.Vector.dist(this.position, boid.position);
-      if ((dist > 0) && (dist < neighbordist)) {
+      if ((dist > 0) && (dist < params.cohesionDistance)) {
         sum.add(boid.position); // Add location
         count++;
       }
@@ -202,9 +260,9 @@ class Boid {
 
   // accumulate a new acceleration each time based on three rules
   flock (boids, params) {
-    const sep = this.separate(boids); // Separation
-    const ali = this.align(boids); // Alignment
-    const coh = this.cohesion(boids); // Cohesion
+    const sep = this.separate(boids, params); // Separation
+    const ali = this.align(boids, params); // Alignment
+    const coh = this.cohesion(boids, params); // Cohesion
     // weight these forces
     sep.mult(params.separation);
     ali.mult(params.alignment);
@@ -223,7 +281,7 @@ class Boid {
     this.applyForce(followSteer);
   }
 
-  render () {
+  render (params) {
     // Draw a triangle rotated in the direction of velocity
     const theta = this.velocity.heading() + radians(90);
     fill(127);
@@ -236,8 +294,18 @@ class Boid {
     vertex(-this.r, this.r * 2);
     vertex(this.r, this.r * 2);
     endShape(CLOSE);
+    if (this.showRadii) {
+      noFill();
+      stroke(120, 0, 0);
+      circle(0, 0, params.alignmentDistance);
+      stroke(0, 120, 0);
+      circle(0, 0, params.cohesionDistance);
+      stroke(0, 0, 120);
+      circle(0, 0, 50); // follow
+      stroke(120, 120, 0);
+      circle(0, 0, params.separationDistance);
+    }
     pop();
-
     if (this.following && this.visualizeFollow) {
       stroke(200, 11, 34);
       line(this.position.x, this.position.y, this.followee.position.x, this.followee.position.y);
@@ -249,7 +317,7 @@ class Boid {
     if (this.following === true) { this.follow(); }
     this.update();
     this.borders(this.wrapBoundary);
-    this.render();
+    this.render(params);
   }
 
   seek (target) {
@@ -263,13 +331,12 @@ class Boid {
   }
 
   // avoid collisions with nearby flockmates
-  separate (boids) {
-    const desiredseparation = 30.0;
+  separate (boids, params) {
     const steer = createVector(0, 0);
     let count = 0;
     for (const boid of boids) {
       const dist = p5.Vector.dist(this.position, boid.position);
-      if ((dist > 0) && (dist < desiredseparation)) {
+      if ((dist > 0) && (dist < params.separationDistance)) {
         // Calculate vector pointing away from neighbor
         let diff = p5.Vector.sub(this.position, boid.position);
         diff.normalize();
@@ -296,11 +363,10 @@ class Boid {
 
   // pick a random nearby boid to follow (or any boid if no one is near)
   startFollow (boids) {
-    const neighbordist = 50;
     const candidates = [];
     for (const boid of boids) {
       let dist = p5.Vector.dist(this.position, boid.position);
-      if ((dist > 0) && (dist < neighbordist)) {
+      if ((dist > 0) && (dist < this.followDistance)) {
         candidates.push(boid);
       }
     }

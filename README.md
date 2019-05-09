@@ -1,5 +1,5 @@
 
-# Flock-Follow Experiment
+# Flock-follow Experiment
 
 This is an experiment I learned in a workshop some time ago (I don't quite remember the exact occasion):
 
@@ -25,6 +25,8 @@ To start, run a webserver, e.g. [live-server](https://github.com/tapio/live-serv
 - ES6
 - implement parameter UI with [Materialize](http://materializecss.com/)
 - implement "follow" logic
+- expose neighborhood parameters
+- save/load parameters
 - lint the code with [semistandard](https://github.com/Flet/semistandard)
 
 ## IDEAS
@@ -33,11 +35,12 @@ To start, run a webserver, e.g. [live-server](https://github.com/tapio/live-serv
 - implement "highlight one" (klick on one boid while paused to highlight it)
 - implement variable number of boids
 - implement a small random error in the following distance  
+- display graphs of parameters over time, e.g. global cohesion
 - implement optional tracing and save trace data
 - add an option to show a video of the experiment with humans and the simulation side-by-side
 - implement more behaviours from Reynolds' paper
-- expose neigborhood parameters
-- show parameter values on sliders
+- show parameter values in the UI
+- handle load parameters better
 
 - modularize the code, make p5.js work with ES6 modules
 - optimize (avoid vector creation in the draw loop)
