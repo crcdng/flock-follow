@@ -27,22 +27,24 @@ To start, run a webserver, e.g. [live-server](https://github.com/tapio/live-serv
 - implement "follow" logic
 - expose neighborhood parameters
 - save/load parameters
+- implement run/pause
+- implement variable number of boids
 - lint the code with [semistandard](https://github.com/Flet/semistandard)
 
 ## IDEAS
 
-- implement run/pause
 - implement "highlight one" (klick on one boid while paused to highlight it)
-- implement variable number of boids
 - implement a small random error in the following distance  
 - display graphs of parameters over time, e.g. global cohesion
 - implement optional tracing and save trace data
 - add an option to show a video of the experiment with humans and the simulation side-by-side
 - implement more behaviours from Reynolds' paper
 - show parameter values in the UI
-- handle load parameters better
+- better handle "load parameters" (path)
+- select colors for boids / background
 
 - modularize the code, make p5.js work with ES6 modules
+- function parameters instead of global variables
 - optimize (avoid vector creation in the draw loop)
 - optimize (reduce multiple runs through the boids array in flocking behaviors into one)
 
