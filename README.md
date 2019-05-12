@@ -40,11 +40,12 @@ To start, run a webserver, e.g. [live-server](https://github.com/tapio/live-serv
 - add an option to show a video of the experiment with humans and the simulation side-by-side
 - implement more behaviours from Reynolds' paper
 - show parameter values in the UI
+- simulation speed
 - better handle "load parameters" (path)
 - select colors for boids / background
 
 - modularize the code, make p5.js work with ES6 modules
-- function parameters instead of global variables
+- use function parameters instead of global variables
 - optimize (avoid vector creation in the draw loop)
 - optimize (reduce multiple runs through the boids array in flocking behaviors into one)
 

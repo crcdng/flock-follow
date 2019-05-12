@@ -1,21 +1,22 @@
 // flock-follow by crcdng. see Readme.md
 /* global background, beginShape, circle, CLOSE, createButton, createCanvas, createCheckbox, createP, createSlider, createSpan, createVector, draw, endShape, fill, height, line, loadJSON, loop, noFill, noLoop, p5, pop, print, push, radians, random, rotate, saveJSON, setup, stroke, translate, vertex, width */
 
-let btnPause, btnRun, checkboxHalo, defaults, flock, parameters, running,
-  sliderAlignment, sliderAlignmentDistance, sliderCohesion,
-  sliderCohesionDistance, sliderNumberOfBoids, sliderSeparation, sliderSeparationDistance;
+let btnPause, btnRun, checkboxHalo, defaults, flock, numberOfboids, parameters, running,
+  sliderAlignment, slideralignmentDiameter, sliderCohesion,
+  slidercohesionDiameter, sliderSeparation, sliderseparationDiameter, spanNumberOfBoids;
 
 function setup () {
   createCanvas(640, 480).parent('canvas-area');
   running = false;
   noLoop();
+  numberOfboids = 100;
   defaults = {
     separation: 2.5,
-    separationDistance: 30,
+    separationDiameter: 30,
     alignment: 0.2,
-    alignmentDistance: 50,
+    alignmentDiameter: 50,
     cohesion: 0.2,
-    cohesionDistance: 50
+    cohesionDiameter: 50
   };
   parameters = Object.assign({}, defaults);
 
@@ -23,23 +24,17 @@ function setup () {
   const btnInit = createButton('Initialize').class('btn').parent('ui-area');
   btnInit.mousePressed(initialize);
   createP('').parent('ui-area'); // some distance
-  createSpan('boids').parent('ui-area');
-  sliderNumberOfBoids = createSlider(0, 500, 100, 0).parent('ui-area');
+  createSpan('boids ').parent('ui-area');
+  spanNumberOfBoids = createSpan(numberOfboids).parent('ui-area');
+  const sliderNumberOfBoids = createSlider(0, 500, numberOfboids, 0).parent('ui-area');
+  sliderNumberOfBoids.input(onSliderNumberOfBoidsInput);
   createP('').parent('ui-area'); // some distance
   btnRun = createButton('Run').class('btn blue disabled').parent('ui-area');
   btnRun.mousePressed(runPause);
   createSpan(' ').parent('ui-area'); // some distance
   btnPause = createButton('Pause').class('btn blue disabled').parent('ui-area');
   btnPause.mousePressed(runPause);
-  createP('').parent('ui-area'); // some distance
-  const btnReset = createButton('Reset Parameters').class('btn').parent('ui-area');
-  btnReset.mousePressed(resetParameters);
-  createP('').parent('ui-area'); // some distance
-  const btnLoad = createButton('Load Parameters').class('btn').parent('ui-area');
-  btnLoad.mousePressed(loadParameters);
-  createP('').parent('ui-area'); // some distance
-  const btnSave = createButton('Save Parameters').class('btn').parent('ui-area');
-  btnSave.mousePressed(saveParameters);
+
   createP('').parent('ui-area'); // some distance
   createSpan('separation').parent('ui-area');
   sliderSeparation = createSlider(0, 5.0, parameters.separation, 0).parent('ui-area');
@@ -47,43 +42,56 @@ function setup () {
   sliderAlignment = createSlider(0, 1.0, parameters.alignment, 0).parent('ui-area');
   createSpan('cohesion').parent('ui-area');
   sliderCohesion = createSlider(0, 1.0, parameters.cohesion, 0).parent('ui-area');
+
   createP('').parent('ui-area'); // some distance
-  const checkboxFollow = createCheckbox('Follow', false).parent('ui-area');
+  const btnReset = createButton('reset parameters').class('btn').parent('ui-area');
+  btnReset.mousePressed(onButtonResetParametersPressed);
+  createP('').parent('ui-area'); // some distance
+  const btnLoad = createButton('load parameters').class('btn').parent('ui-area');
+  btnLoad.mousePressed(loadParameters);
+  createP('').parent('ui-area'); // some distance
+  const btnSave = createButton('save parameters').class('btn').parent('ui-area');
+  btnSave.mousePressed(saveParameters);
+
+  createP('').parent('ui-area'); // some distance
+  const checkboxFollow = createCheckbox('follow', false).parent('ui-area');
   checkboxFollow.changed(onCheckboxFollowChanged);
-  const checkboxVisualizeFollow = createCheckbox('Visualize Follow', false).parent('ui-area');
+  const checkboxVisualizeFollow = createCheckbox('visualize follow', false).parent('ui-area');
   checkboxVisualizeFollow.changed(onCheckboxVisualizeFollowChanged);
-  const checkboxBoundary = createCheckbox('Wrap Boundary', false).parent('ui-area');
+  const checkboxBoundary = createCheckbox('wrap boundary', false).parent('ui-area');
   checkboxBoundary.changed(onCheckboxBoundaryChanged);
-  checkboxHalo = createCheckbox('Show Halo', true).parent('ui-area');
-  const checkboxRadii = createCheckbox('Show Radii', false).parent('ui-area');
+  checkboxHalo = createCheckbox('show halo', true).parent('ui-area');
+  const checkboxRadii = createCheckbox('show radii', false).parent('ui-area');
   checkboxRadii.changed(onCheckboxRadiiChanged);
+
   createP('').parent('ui-area'); // some distance
   createSpan('separation radius').parent('ui-area');
-  sliderSeparationDistance = createSlider(20, 200, parameters.separationDistance, 0).parent('ui-area');
+  sliderseparationDiameter = createSlider(20, 200, parameters.separationDiameter, 0).parent('ui-area');
   createSpan('alignment radius').parent('ui-area');
-  sliderAlignmentDistance = createSlider(20, 200, parameters.alignmentDistance, 0).parent('ui-area');
+  slideralignmentDiameter = createSlider(20, 200, parameters.alignmentDiameter, 0).parent('ui-area');
   createSpan('cohesion radius').parent('ui-area');
-  sliderCohesionDistance = createSlider(20, 200, parameters.cohesionDistance, 0).parent('ui-area');
+  slidercohesionDiameter = createSlider(20, 200, parameters.cohesionDiameter, 0).parent('ui-area');
 }
 
 function draw () {
   background(51, checkboxHalo.checked() ? 77 : 255);
   parameters.separation = sliderSeparation.value();
-  parameters.separationDistance = sliderSeparationDistance.value();
+  parameters.separationDiameter = sliderseparationDiameter.value();
   parameters.alignment = sliderAlignment.value();
-  parameters.alignmentDistance = sliderAlignmentDistance.value();
+  parameters.alignmentDiameter = slideralignmentDiameter.value();
   parameters.cohesion = sliderCohesion.value();
-  parameters.cohesionDistance = sliderCohesionDistance.value();
-  flock.run(parameters);
+  parameters.cohesionDiameter = slidercohesionDiameter.value();
+  if (flock != null) { flock.run(parameters); } // draw runs once even if noLoop is called in setup()
 }
 
 function initialize () {
   btnRun.removeClass('disabled');
-  makeFlock(sliderNumberOfBoids.value());
+  makeFlock(numberOfboids);
+  background(51);
 }
 
 function loadParameters () {
-  parameters = loadJSON('flockfollow_params.json', updateUI, (e) => { print('flockfollow parameter file not found!'); });
+  parameters = loadJSON('flockfollow_params.json', updateUiParameterElements, (e) => { print('flockfollow parameter file not found!'); });
 }
 
 function makeFlock (n) {
@@ -91,6 +99,11 @@ function makeFlock (n) {
   for (let i = 0; i < n; i++) {
     flock.addBoid(new Boid(random(0, width), random(0, height)));
   }
+}
+
+function onButtonResetParametersPressed () {
+  parameters = Object.assign({}, defaults);
+  updateUiParameterElements();
 }
 
 function onCheckboxBoundaryChanged () {
@@ -113,10 +126,14 @@ function onCheckboxVisualizeFollowChanged () {
   flock.visualizeFollow(this.checked());
 }
 
+function onSliderNumberOfBoidsInput (value) {
+  numberOfboids = int(value.target.valueAsNumber);
+  spanNumberOfBoids.elt.innerHTML = numberOfboids;
+}
+
 function runPause () {
   if (running === true) {
     running = false;
-    console.log(btnRun);// .attribute('align', 'center');
     btnRun.toggleClass('disabled');
     btnPause.toggleClass('disabled');
     noLoop();
@@ -128,22 +145,17 @@ function runPause () {
   }
 }
 
-function resetParameters () {
-  parameters = Object.assign({}, defaults);
-  updateUI();
-}
-
 function saveParameters () {
   saveJSON(parameters, 'flockfollow_params.json');
 }
 
-function updateUI () {
+function updateUiParameterElements () {
   sliderSeparation.value(parameters.separation);
-  sliderSeparationDistance.value(parameters.separationDistance);
+  sliderseparationDiameter.value(parameters.separationDiameter);
   sliderAlignment.value(parameters.alignment);
-  sliderAlignmentDistance.value(parameters.alignmentDistance);
+  slideralignmentDiameter.value(parameters.alignmentDiameter);
   sliderCohesion.value(parameters.cohesion);
-  sliderCohesionDistance.value(parameters.cohesionDistance);
+  slidercohesionDiameter.value(parameters.cohesionDiameter);
 }
 
 class Flock {
@@ -219,7 +231,7 @@ class Boid {
     let count = 0;
     for (const boid of boids) {
       const dist = p5.Vector.dist(this.position, boid.position);
-      if ((dist > 0) && (dist < params.alignmentDistance)) {
+      if ((dist > 0) && (dist < params.alignmentDiameter)) {
         sum.add(boid.velocity);
         count++;
       }
@@ -284,7 +296,7 @@ class Boid {
     let count = 0;
     for (const boid of boids) {
       const dist = p5.Vector.dist(this.position, boid.position);
-      if ((dist > 0) && (dist < params.cohesionDistance)) {
+      if ((dist > 0) && (dist < params.cohesionDiameter)) {
         sum.add(boid.position); // Add location
         count++;
       }
@@ -336,13 +348,13 @@ class Boid {
     if (this.showRadii) {
       noFill();
       stroke(120, 0, 0);
-      circle(0, 0, params.alignmentDistance);
+      circle(0, 0, params.alignmentDiameter);
       stroke(0, 120, 0);
-      circle(0, 0, params.cohesionDistance);
+      circle(0, 0, params.cohesionDiameter);
       stroke(0, 0, 120);
       circle(0, 0, 50); // follow
       stroke(120, 120, 0);
-      circle(0, 0, params.separationDistance);
+      circle(0, 0, params.separationDiameter);
     }
     pop();
     if (this.following && this.visualizeFollow) {
@@ -375,7 +387,7 @@ class Boid {
     let count = 0;
     for (const boid of boids) {
       const dist = p5.Vector.dist(this.position, boid.position);
-      if ((dist > 0) && (dist < params.separationDistance)) {
+      if ((dist > 0) && (dist < params.separationDiameter)) {
         // Calculate vector pointing away from neighbor
         let diff = p5.Vector.sub(this.position, boid.position);
         diff.normalize();
