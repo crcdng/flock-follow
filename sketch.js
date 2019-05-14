@@ -268,22 +268,19 @@ class Boid {
         this.position.y = -this.r;
       }
     } else {
-      if (this.position.x < 0) {
-        this.position.x = 1;
+      if (this.position.x < this.r) {
+        this.position.x = this.r + 1;
         this.velocity.x = -this.velocity.x;
       }
-      if (this.position.y < 0) {
-        if (wraparound) {} else {}
-        this.position.y = 1;
+      if (this.position.y < this.r) {
+        this.position.y = this.r + 1;
         this.velocity.y = -this.velocity.y;
       }
       if (this.position.x > width - this.r) {
-        if (wraparound) {} else {}
         this.position.x = width - (this.r + 1);
         this.velocity.x = -this.velocity.x;
       }
       if (this.position.y > height - this.r) {
-        if (wraparound) {} else {}
         this.position.y = height - (this.r + 1);
         this.velocity.y = -this.velocity.y;
       }
