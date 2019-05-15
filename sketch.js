@@ -86,6 +86,7 @@ function draw () {
 
 function initialize () {
   btnRun.removeClass('disabled');
+  btnPause.addClass('disabled');
   makeFlock(numberOfboids);
   background(51);
 }

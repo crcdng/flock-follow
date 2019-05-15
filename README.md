@@ -1,6 +1,8 @@
 
 # Flock-follow Experiment
 
+Live at https://i3games.github.io/flock-follow/.
+
 This is an experiment I learned in a workshop some time ago (I don't quite remember the exact occasion):
 
 Ask a group of people to walk around in a restricted space, so that flocking behaviour can emerge. Let them keep moving while trying not to bump into each other.
@@ -18,7 +20,7 @@ I have done the experiment a number of times with groups of students. Afterwards
 
 This code grew from a rewrite of the p5.js flocking example by Daniel Shiffman from "The Nature of Code" (http://natureofcode.com).
 
-To start, run a webserver, e.g. [live-server](https://github.com/tapio/live-server) in the main directory.
+To run locally, unzip or clone this repository, then start a webserver, e.g. [live-server](https://github.com/tapio/live-server) in the main directory.
 
 ## DONE
 
