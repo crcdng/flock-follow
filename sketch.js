@@ -1,5 +1,5 @@
 // flock-follow by crcdng. see Readme.md
-/* global background, beginShape, circle, CLOSE, createButton, createCanvas, createCheckbox, createP, createSlider, createSpan, createVector, draw, endShape, fill, height, line, loadJSON, loop, noFill, noLoop, p5, pop, print, push, radians, random, rotate, saveJSON, setup, stroke, translate, vertex, width */
+/* global background, beginShape, circle, CLOSE, color, createButton, createCanvas, createCheckbox, createP, createSlider, createSpan, createVector, draw, endShape, fill, height, int, line, loadJSON, loop, mouseX, mouseY, noFill, noLoop, p5, pop, print, push, radians, random, redraw, rotate, saveJSON, setup, stroke, translate, vertex, width */
 
 let btnPause, btnRun, checkboxHalo, defaults, flock, numberOfboids, parameters, running,
   sliderAlignment, slideralignmentDiameter, sliderCohesion,
@@ -102,6 +102,14 @@ function makeFlock (n) {
   }
 }
 
+function mouseClicked () {
+  const boid = flock.select(mouseX, mouseY);
+  if (boid != null) {
+    boid.toggleSelect();
+    redraw();
+  }
+}
+
 function onButtonResetParametersPressed () {
   parameters = Object.assign({}, defaults);
   updateUiParameterElements();
@@ -178,6 +186,16 @@ class Flock {
     // console.log(sumDistDiff);
   }
 
+  select (x, y) {
+    for (const boid of this.boids) {
+      if ((x - boid.position.x) * (x - boid.position.x) +
+          (y - boid.position.y) * (y - boid.position.y) < boid.r * boid.r * 5) {
+        return boid;
+      }
+    }
+    return null;
+  }
+
   showRadii (on) {
     for (const boid of this.boids) {
       boid.showRadii = on;
@@ -212,18 +230,19 @@ class Flock {
 class Boid {
   constructor (x, y) {
     this.acceleration = createVector(0, 0);
-    this.velocity = createVector(random(-1, 1), random(-1, 1));
-    this.position = createVector(x, y);
-    this.r = 6.0;
-    this.maxspeed = 3;
-    this.maxforce = 0.05;
-    this.following = false;
-    this.followee = null;
-    this.initialDistToFollowee = 0;
     this.distDiff = 0;
+    this.followee = null;
+    this.following = false;
+    this.initialDistToFollowee = 0;
+    this.maxforce = 0.05;
+    this.maxspeed = 3;
+    this.position = createVector(x, y);
+    this.r = 6.0; // approximately the radius
+    this.selected = false;
+    this.showRadii = false;
+    this.velocity = createVector(random(-1, 1), random(-1, 1));
     this.visualizeFollow = false;
     this.wrapBoundary = false;
-    this.showRadii = false;
   }
 
   // attempt to match velocity with nearby flockmates
@@ -333,7 +352,7 @@ class Boid {
   render (params) {
     // Draw a triangle rotated in the direction of velocity
     const theta = this.velocity.heading() + radians(90);
-    fill(127);
+    fill(this.selected ? color(0, 127, 0) : color(127, 127, 127));
     stroke(200);
     push();
     translate(this.position.x, this.position.y);
@@ -433,6 +452,8 @@ class Boid {
     this.followee = null;
     this.initialDistToFollowee = 0;
   }
+
+  toggleSelect () { this.selected = !this.selected; }
 
   update () {
     this.velocity.add(this.acceleration);
