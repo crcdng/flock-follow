@@ -31,14 +31,15 @@ To run locally, unzip or clone this repository, then start a webserver, e.g. [li
 - save/load parameters
 - implement run/pause
 - implement variable number of boids
+- implement "highlight one" (klick on one boid while paused to highlight it)
+- implement tracing of selected boids
 - lint the code with [semistandard](https://github.com/Flet/semistandard)
 
 ## IDEAS
 
-- implement "highlight one" (klick on one boid while paused to highlight it)
 - implement a small random error in the following distance  
 - display graphs of parameters over time, e.g. global cohesion
-- implement optional tracing and save trace data
+- save trace data
 - add an option to show a video of the experiment with humans and the simulation side-by-side
 - implement more behaviours from Reynolds' paper
 - show parameter values in the UI

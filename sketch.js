@@ -1,8 +1,8 @@
 // flock-follow by crcdng. see Readme.md
-/* global background, beginShape, circle, CLOSE, color, createButton, createCanvas, createCheckbox, createP, createSlider, createSpan, createVector, draw, endShape, fill, height, int, line, loadJSON, loop, mouseX, mouseY, noFill, noLoop, p5, pop, print, push, radians, random, redraw, rotate, saveJSON, setup, stroke, translate, vertex, width */
+/* global background, beginShape, circle, CLOSE, color, createButton, createCanvas, createCheckbox, createP, createSlider, createSpan, createVector, draw, endShape, fill, height, int, line, LINES, loadJSON, loop, mouseX, mouseY, noFill, noLoop, p5, pop, print, push, radians, random, redraw, rotate, saveJSON, setup, stroke, translate, vertex, width */
 
-let btnPause, btnRun, checkboxHalo, defaults, flock, numberOfboids, parameters, running,
-  sliderAlignment, slideralignmentDiameter, sliderCohesion,
+let btnPause, btnRun, checkboxHalo, checkboxTrace, defaults, flock, numberOfboids,
+  parameters, running, sliderAlignment, slideralignmentDiameter, sliderCohesion,
   slidercohesionDiameter, sliderSeparation, sliderseparationDiameter, spanNumberOfBoids;
 
 function setup () {
@@ -58,9 +58,13 @@ function setup () {
   checkboxFollow.changed(onCheckboxFollowChanged);
   const checkboxVisualizeFollow = createCheckbox('visualize follow', false).parent('ui-area');
   checkboxVisualizeFollow.changed(onCheckboxVisualizeFollowChanged);
+
+  createP('').parent('ui-area'); // some distance
   const checkboxBoundary = createCheckbox('wrap boundary', false).parent('ui-area');
   checkboxBoundary.changed(onCheckboxBoundaryChanged);
   checkboxHalo = createCheckbox('show halo', true).parent('ui-area');
+  checkboxTrace = createCheckbox('trace selected boids', false).parent('ui-area');
+  checkboxTrace.changed(onCheckboxTraceChanged);
   const checkboxRadii = createCheckbox('show radii', false).parent('ui-area');
   checkboxRadii.changed(onCheckboxRadiiChanged);
 
@@ -81,7 +85,7 @@ function draw () {
   parameters.alignmentDiameter = slideralignmentDiameter.value();
   parameters.cohesion = sliderCohesion.value();
   parameters.cohesionDiameter = slidercohesionDiameter.value();
-  if (flock != null) { flock.run(parameters); } // draw runs once even if noLoop is called in setup()
+  if (flock != null) { flock.step(parameters); } // draw runs once even if noLoop is called in setup()
 }
 
 function initialize () {
@@ -106,6 +110,9 @@ function mouseClicked () {
   const boid = flock.select(mouseX, mouseY);
   if (boid != null) {
     boid.toggleSelect();
+    if (checkboxTrace.checked()) {
+      boid.traceSelected(boid.selected);
+    }
     redraw();
   }
 }
@@ -119,16 +126,20 @@ function onCheckboxBoundaryChanged () {
   flock.wrapBoundary(this.checked());
 }
 
-function onCheckboxRadiiChanged () {
-  flock.showRadii(this.checked());
-}
-
 function onCheckboxFollowChanged () {
   if (this.checked()) {
     flock.startFollow();
   } else {
     flock.stopFollow();
   }
+}
+
+function onCheckboxRadiiChanged () {
+  flock.showRadii(this.checked());
+}
+
+function onCheckboxTraceChanged () {
+  flock.traceSelected(this.checked());
 }
 
 function onCheckboxVisualizeFollowChanged () {
@@ -177,11 +188,11 @@ class Flock {
     this.boids.push(boid);
   }
 
-  run (parameters) {
+  step (parameters) {
     let sumDistDiff = 0;
     for (const boid of this.boids) {
       if (boid.following) { sumDistDiff = sumDistDiff + Math.abs(boid.distDiff); }
-      boid.run(this.boids, parameters);
+      boid.step(this.boids, parameters);
     }
     // console.log(sumDistDiff);
   }
@@ -214,6 +225,12 @@ class Flock {
     }
   }
 
+  traceSelected (on) {
+    for (const boid of this.boids.filter((b) => b.selected)) {
+      boid.traceSelected(on);
+    }
+  }
+
   visualizeFollow (on) {
     for (const boid of this.boids) {
       boid.visualizeFollow = on;
@@ -233,13 +250,17 @@ class Boid {
     this.distDiff = 0;
     this.followee = null;
     this.following = false;
-    this.initialDistToFollowee = 0;
+    this.initialDistanceToFollowee = 0;
     this.maxforce = 0.05;
     this.maxspeed = 3;
+    this.memory = new Array(this.memorySize); // pre-allocate the boid's memory
+    this.memoryPosition = 0;
+    this.memorySize = 4200;
     this.position = createVector(x, y);
     this.r = 6.0; // approximately the radius
     this.selected = false;
     this.showRadii = false;
+    this.trace = false;
     this.velocity = createVector(random(-1, 1), random(-1, 1));
     this.visualizeFollow = false;
     this.wrapBoundary = false;
@@ -343,7 +364,7 @@ class Boid {
 
   follow () {
     const currentDist = p5.Vector.dist(this.followee.position, this.position);
-    this.distDiff = currentDist - this.initialDistToFollowee;
+    this.distDiff = currentDist - this.initialDistanceToFollowee;
     let followSteer = this.seek(this.followee.position);
     followSteer.mult(this.distDiff);
     this.applyForce(followSteer);
@@ -354,6 +375,7 @@ class Boid {
     const theta = this.velocity.heading() + radians(90);
     fill(this.selected ? color(0, 127, 0) : color(127, 127, 127));
     stroke(200);
+
     push();
     translate(this.position.x, this.position.y);
     rotate(theta);
@@ -374,18 +396,26 @@ class Boid {
       circle(0, 0, params.separationDiameter);
     }
     pop();
+    stroke(color(0, 127, 0));
+
+    if (this.trace) {
+      beginShape(LINES);
+      for (let i = 0; i < this.memorySize; i++) {
+        const m = this.memory[(this.memoryPosition + i) % this.memorySize];
+        if (m == null) { continue; } // skip empty cells
+        vertex(m.x, m.y);
+      }
+      endShape();
+    }
+
     if (this.following && this.visualizeFollow) {
       stroke(200, 11, 34);
       line(this.position.x, this.position.y, this.followee.position.x, this.followee.position.y);
     }
   }
 
-  run (boids, params) {
-    this.flock(boids, params);
-    if (this.following === true) { this.follow(); }
-    this.update();
-    this.borders(this.wrapBoundary);
-    this.render(params);
+  resetMemory () {
+    for (let v of this.memory) { v = null; }
   }
 
   seek (target) {
@@ -440,18 +470,30 @@ class Boid {
     }
     this.followee = random(candidates);
     if (this.followee == null) { this.followee = random(boids); }
-    this.initialDistToFollowee = p5.Vector.dist(this.position, this.followee.position);
-
-    // console.log('I follow ', this.followee, 'at distance ', this.initialDistToFollowee);
+    this.initialDistanceToFollowee = p5.Vector.dist(this.position, this.followee.position);
     this.following = true;
-    return this.initialDistToFollowee;
+    return this.initialDistanceToFollowee;
+  }
+
+  step (boids, params) {
+    this.flock(boids, params);
+    if (this.following === true) { this.follow(); }
+    this.update();
+    this.borders(this.wrapBoundary);
+    if (this.trace) { // memorize position
+      this.memory[this.memoryPosition] = this.position.copy();
+      this.memoryPosition = (this.memoryPosition + 1) % this.memorySize;
+    }
+    this.render(params);
   }
 
   stopFollow () {
     this.following = false;
     this.followee = null;
-    this.initialDistToFollowee = 0;
+    this.initialDistanceToFollowee = 0;
   }
+
+  traceSelected (on) { this.trace = on; }
 
   toggleSelect () { this.selected = !this.selected; }
 
