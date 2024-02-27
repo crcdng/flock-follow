@@ -1,7 +1,7 @@
 
 # Flock-follow Experiment
 
-Live at https://i3games.github.io/flock-follow/.
+Live at https://crcdng.github.io/flock-follow/.
 
 This is an experiment I learned in a workshop some time ago (I don't quite remember the exact occasion):
 
